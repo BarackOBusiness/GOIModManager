@@ -28,4 +28,21 @@ class MenuButtonHelper : MonoBehaviour {
 
 		return tmpButton.transform;
 	}
+
+	public Transform AddModButton(IMod mod) {
+		GameObject tmpButton = Instantiate(template, menu);
+		tmpButton.name = mod.Name + " Button";
+
+		Transform buttonText = tmpButton.transform.GetChild(0);
+		Destroy(buttonText.GetComponent<I2.Loc.Localize>());
+		buttonText.GetComponent<TextMeshProUGUI>().text = mod.Name;
+		
+		ModButton handler = tmpButton.AddComponent<ModButton>();
+		handler.Init(mod);
+
+		Button button = tmpButton.GetComponent<Button>();
+		button.onClick = new Button.ButtonClickedEvent();
+
+		return tmpButton.transform;
+	}
 }

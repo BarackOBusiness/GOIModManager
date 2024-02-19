@@ -29,6 +29,7 @@ public static class MenuTransitions {
 
 		menu.SetActive(false);
 
+		modMenu.DefaultText();
 		TextMeshProUGUI[] items = loader.menu.GetComponentsInChildren<TextMeshProUGUI>();
 		for (float t = 0f; t <= 1.0001f; t += 0.05f) {
 			modMenu.SlideInfoIn(t);

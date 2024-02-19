@@ -25,6 +25,14 @@ class ModManager : MonoBehaviour {
 			Directory.CreateDirectory(modConfigPath);
 	}
 
+	public IMod[] QueryMods() {
+		return mods;
+	}
+
+	public static void ModStatusChange(IMod mod) {
+		WriteModConfig(mod);
+	}
+
 	private void Awake() {
 		Debug.Log("Loading mods...");
 		mods = LoadMods().ToArray();
@@ -47,9 +55,9 @@ class ModManager : MonoBehaviour {
 			foreach (Type type in modAssembly.GetTypes()) {
 				if (typeof(IMod).IsAssignableFrom(type)) {
 					IMod modInstance = (IMod)Activator.CreateInstance(type);
-					ValidateModConfig(ref modInstance);
-					modStates[modInstance] = LoadModStatus(ref modInstance);
+					modStates[modInstance] = LoadModConfig(ref modInstance);
 					loadedMods.Add(modInstance);
+					PrintModConfig(modInstance);
 				}
 			}
 		}
@@ -57,21 +65,14 @@ class ModManager : MonoBehaviour {
 		return loadedMods;
 	}
 
-	private void ValidateModConfig(ref IMod mod) {
-		string modConfig = modConfigPath + $"/{mod.Name}.json";
-		// Debug.Log($"This is the config file for {mod.Name}: {modConfig}");
-
-		if (!File.Exists(modConfig))
-			File.CreateText(modConfig);
-	}
-
-	private bool LoadModStatus(ref IMod mod) {
+	private static bool LoadModConfig(ref IMod mod) {
 		string modConfig = modConfigPath + $"/{mod.Name}.json";
 		Debug.Log($"Loading the config file for {mod.Name}...");
 
-		if (File.ReadAllText(modConfig).Length == 0) {
-			Debug.Log("Config file is empty.");
-			return true; // Default to running the mod
+		if (!File.Exists(modConfig)) {
+			Debug.Log("Config file doesn't exist.");
+			File.CreateText(modConfig);
+			return true; // Default to running the mod, even if the mod creator doesn't want it to
 		}
 
 		mod.Configuration.Deserialize(File.ReadAllText(modConfig));
@@ -79,7 +80,16 @@ class ModManager : MonoBehaviour {
 		return mod.Configuration.IsEnabled;
 	}
 
-	private void WriteModStatus(IMod mod) {
+	private static void PrintModConfig(IMod mod) {
+		FieldInfo[] fields = mod.Configuration.GetType().GetFields();
+		Debug.Log("Trying to print mod configuration fields");
+
+		foreach (FieldInfo field in fields) {
+			Debug.Log($"Configuration item {field.Name} of {mod.Name} is set to {field.GetValue(mod)}");
+		}
+	}
+
+	private static void WriteModConfig(IMod mod) {
 		string modConfig = modConfigPath + $"/{mod.Name}.json";
 		Debug.Log($"Writing the config file for {mod.Name}");
 
@@ -100,7 +110,7 @@ class ModManager : MonoBehaviour {
 	private void ShutdownMods() {
 		foreach (IMod mod in mods) {
 			Debug.Log($"Shutting down mod {mod.Name}");
-			WriteModStatus(mod);
+			WriteModConfig(mod);
 			mod.Deinit();
 		}
 	}

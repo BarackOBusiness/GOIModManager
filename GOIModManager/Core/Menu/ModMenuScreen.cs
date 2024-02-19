@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -10,6 +11,7 @@ namespace GOIModManager.Core.Menu;
 class ModMenuScreen : MonoBehaviour {
 	// Necessary context information
 	private Transform UI = GameObject.Find("/Canvas").transform;
+	private ModManager modManager = Resources.FindObjectsOfTypeAll<ModManager>()[0];
 	private RectTransform rect;
 
 	// Used as a baseline to animate the slide in
@@ -22,6 +24,7 @@ class ModMenuScreen : MonoBehaviour {
 	Transform modList;
 	Transform modColumn;
 	Transform backButton;
+	Transform[] modButtons;
 
 	TextMeshProUGUI titleText;
 	TextMeshProUGUI descText;
@@ -39,17 +42,23 @@ class ModMenuScreen : MonoBehaviour {
 	}
 
 	public void SlideInfoIn(float t) {
-		info.localPosition = infoPosition + new Vector3(Mathf.SmoothStep(-900f, 0f, t), 0f, 0f);
+		info.localPosition = infoPosition + new Vector3(Mathf.SmoothStep(-1400f, 0f, t), 0f, 0f);
 	}
 
 	public void SlideInfoOut(float t) {
-		info.localPosition = infoPosition + new Vector3(Mathf.SmoothStep(-900f, 0f, t), 0f, 0f);
+		info.localPosition = infoPosition + new Vector3(Mathf.SmoothStep(-1400f, 0f, t), 0f, 0f);
 	}
 
-	// TODO: Make this not inactive by default
-	// create a method to be called instead of setting inactive for closing the mod menu
-	// give ownership of the back button back to this class
-	// make this class handle positioning the back button
+	public void SetInfoText(string title, string description) {
+		titleText.text = title;
+		descText.text = description;
+	}
+
+	public void DefaultText() {
+		titleText.text = "Mods";
+		descText.fontSize = 32f;
+		descText.text = "Select a mod to view its description and options.\nDouble click to enable or disable a mod.";
+	}
 	void Awake() {
 		rect = gameObject.GetComponent<RectTransform>();
 	
@@ -74,6 +83,8 @@ class ModMenuScreen : MonoBehaviour {
 		modList = CreateList();
 		modColumn = CreateColumn();
 
+		modButtons = PopulateModList().ToArray();
+
 		Hide();
 		
 		InitLayout();
@@ -90,10 +101,19 @@ class ModMenuScreen : MonoBehaviour {
 		modList.transform.localPosition = new Vector3(179f, -25f, 0f);
 	}
 
-	private void DefaultText() {
-		titleText.text = "Mods";
-		descText.fontSize = 32f;
-		descText.text = "Select a mod to view its description and options.\nDouble click to enable or disable a mod.";
+
+
+	private List<Transform> PopulateModList() {
+		MenuButtonHelper buttonGen = new MenuButtonHelper(UI.Find("Column/Quit"), modColumn);
+
+		IMod[] mods = modManager.QueryMods();
+		List<Transform> buttons = new List<Transform>();
+	
+		foreach (IMod mod in mods) {
+			buttons.Add(buttonGen.AddModButton(mod));
+		}
+
+		return buttons;
 	}
 
 	private IEnumerator CreateBackButton() {
@@ -117,6 +137,7 @@ class ModMenuScreen : MonoBehaviour {
 		listViewport.transform.SetParent(listObj.transform);
 		listViewport.transform.localScale = new Vector3(1f, 1f, 1f);
 		listViewport.GetComponent<Mask>().showMaskGraphic = false;
+		listViewport.GetComponent<Mask>().enabled = false;
 
 		listObj.GetComponent<ScrollRect>().viewport = listViewport.GetComponent<RectTransform>();
 
