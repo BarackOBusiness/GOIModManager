@@ -5,6 +5,7 @@ namespace GOIModManager.Core;
 
 public interface IMod {
 	public string Name { get; }
+	public string Description { get; }
 	public ModConfiguration Configuration { get; }
 
 	void Init();
@@ -24,13 +25,18 @@ public abstract class ModConfiguration {
 	}
 }
 
-// TODO: move this to somewhere not core
-public struct ConfigurationItem<T> {
-	public ConfigurationItem(string description, T value) {
-		Description = description;
-		Value = value;
-	}
+/// <summary>
+/// This attribute is used to attach information to your mod's configuration parameters
+/// </summary>
+[AttributeUsage(AttributeTargets.Field)]
+public class ConfigurationItemAttribute : Attribute {
+	public string Name { get; set; }
+	public string Description { get; set; }
 
-	public string Description { get; }
-	public T Value { get; }
+	/// <param name="name">The name of your configuration parameter</param>
+	/// <param name="description">A brief description of what this configuration parameter does</param>
+	public ConfigurationItemAttribute(string name, string description) {
+		Name = name;
+		Description = description;
+	}
 }
