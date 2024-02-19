@@ -2,8 +2,6 @@
 using BepInEx;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using TMPro;
-using UnityEngine.UI;
 using GOIModManager.Core.Menu;
 
 namespace GOIModManager;
@@ -38,21 +36,9 @@ public class GOIModManager : BaseUnityPlugin
 
         // Pass template information to buttonhelper for later
         MenuButtonHelper modButtonGen = new MenuButtonHelper(templateButton.transform, column);
-        
-        GameObject modMenu = Instantiate(column.gameObject, UI);
-        foreach(Transform child in modMenu.transform) {
-            Destroy(child.gameObject);
-        }
-        modMenu.transform.localPosition = column.localPosition;
-        modMenu.transform.localScale = new Vector3(1f, 1f, 1f);
-        modMenu.name = "Mods Column";
-        modMenu.SetActive(false);
 
-        MenuButtonHelper backButtonGen = new MenuButtonHelper(templateButton.transform, modMenu.transform);
-        Transform backButton = backButtonGen.AddButton("Back", () => {
-            StartCoroutine(MenuTransitions.ModMenuCloseRoutine());
-        });
-        
+        GameObject modMenu = new GameObject("Mod Menu", new System.Type[]{ typeof(RectTransform), typeof(ModMenuScreen)});
+
         Transform modMenuButton = modButtonGen.AddButton("Mods", () => 
         {
             StartCoroutine(MenuTransitions.ModMenuOpenRoutine(column.gameObject, modMenu));

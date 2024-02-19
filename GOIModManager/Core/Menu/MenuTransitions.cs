@@ -10,11 +10,11 @@ public static class MenuTransitions {
 	private static RectTransform titleMask;
 	private static Vector3 titleStartPos;
 	private static GameObject menu;
-	private static GameObject modMenu;
+	private static ModMenuScreen modMenu;
 	private static Loader loader;
 	private static bool isModMenuOpen = false;
 	
-	public static IEnumerator ModMenuOpenRoutine(GameObject menu, GameObject modMenu) {
+	public static IEnumerator ModMenuOpenRoutine(GameObject menu, GameObject _modMenu) {
 		loader = Resources.FindObjectsOfTypeAll<Loader>()[0];
 		loader.hammerAnim.Play("HammerDown");
 
@@ -25,19 +25,20 @@ public static class MenuTransitions {
 		titleStartPos = titleMask.position;
 
 		MenuTransitions.menu = menu;
-		MenuTransitions.modMenu = modMenu;
+		MenuTransitions.modMenu = _modMenu.GetComponent<ModMenuScreen>();
 
 		menu.SetActive(false);
 
 		TextMeshProUGUI[] items = loader.menu.GetComponentsInChildren<TextMeshProUGUI>();
 		for (float t = 0f; t <= 1.0001f; t += 0.05f) {
+			modMenu.SlideInfoIn(t);
 			titleMask.position = titleStartPos + new Vector3(Mathf.SmoothStep(0f, -67.5f, t), 0f, 0f);
-			// rock.position = rockStartPos + new Vector3(Mathf.SmoothStep(0f, -15f, t), 0f, 0f);
+			rock.position = rockStartPos + new Vector3(Mathf.SmoothStep(0f, 0.91f, t), 0f, 0f);
 
 			// Animation should be consistent on all systems
 			yield return new WaitForFixedUpdate();
 		}
-		modMenu.SetActive(true);
+		modMenu.Show();
 		isModMenuOpen = true;
 	}
 	
@@ -45,13 +46,14 @@ public static class MenuTransitions {
 		if (!isModMenuOpen) yield break;
 
 		titleMask.sizeDelta = new Vector2(0f, 216f);
-		modMenu.SetActive(false);
+		modMenu.Hide();
 
 		loader.hammerAnim.Play("HammerUp");
-
+		
 		for (float t = 1f; t >= -0.0001f; t -= 0.05f) {
+			modMenu.SlideInfoOut(t);
 			titleMask.position = titleStartPos + new Vector3(Mathf.SmoothStep(0f, -900f, t), 0f, 0f);
-			// rock.position = rockStartPos + new Vector3(Mathf.SmoothStep(0f, -15f, t), 0f, 0f);
+			rock.position = rockStartPos + new Vector3(Mathf.SmoothStep(0f, 0.91f, t), 0f, 0f);
 
 			yield return new WaitForFixedUpdate();
 		}
