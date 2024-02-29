@@ -34,6 +34,7 @@ public class ModManager : MonoBehaviour {
 		mods = ModLoaderUtils.LoadMods(modStates).ToArray();
 		Debug.Log("Initializing mods...");
 		InitializeMods();
+		GetModInfoDebug();
 	}
 
 	private void OnDestroy() {
@@ -47,6 +48,12 @@ public class ModManager : MonoBehaviour {
 				Debug.Log($"Initializing mod {mod.Name}");
 				mod.Init();
 			}
+		}
+	}
+
+	private void GetModInfoDebug() {
+		foreach (IMod mod in mods) {
+			ModLoaderUtils.PrintModConfig(mod);
 		}
 	}
 

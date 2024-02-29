@@ -69,9 +69,15 @@ public static class ModLoaderUtils {
 	}
 
 	internal static void PrintModConfig(IMod mod) {
-		FieldInfo[] fields = mod.Configuration.GetType().GetFields();
+		Type configType = mod.Configuration.GetType();
+		FieldInfo[] fields = configType.GetFields();
+
 		foreach (FieldInfo field in fields) {
-			Debug.Log($"Property {field.Name} of {mod.Name} is currently: {field.GetValue(mod.Configuration)}");
+			object value = field.GetValue(mod.Configuration);
+			Debug.Log($"Property: {field.Name}, Value: {value}");
+
+			var attribute = field.GetCustomAttribute<ConfigurationItemAttribute>();
+			Debug.Log($"Setting name: {attribute.Name}, Setting description: {attribute.Description}");
 		}
 	}
 
