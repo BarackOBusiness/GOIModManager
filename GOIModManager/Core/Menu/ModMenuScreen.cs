@@ -18,13 +18,13 @@ class ModMenuScreen : MonoBehaviour {
 	public static Vector3 infoPosition = new Vector3(-310f, 288f, 0f);
 	public static float rockX = -55f;
 
-	Transform info;
-	Transform title;
-	Transform description;
-	Transform modList;
-	Transform modColumn;
-	Transform backButton;
-	Transform[] modButtons;
+	RectTransform info;
+	RectTransform title;
+	RectTransform description;
+	RectTransform modList;
+	RectTransform modColumn;
+	RectTransform backButton;
+	RectTransform[] modButtons;
 
 	TextMeshProUGUI titleText;
 	TextMeshProUGUI descText;
@@ -60,28 +60,28 @@ class ModMenuScreen : MonoBehaviour {
 		descText.text = "Select a mod to view its description and options.\nDouble click to enable or disable a mod.";
 	}
 	void Awake() {
-		rect = gameObject.GetComponent<RectTransform>();
+		rect = transform as RectTransform;
 	
 		rect.SetParent(UI);
-		rect.localPosition = new Vector3(0f, 0f, 0f);
-		rect.localScale = new Vector3(1f, 1f, 1f);
-		rect.anchorMin = new Vector2(0, 0);
-		rect.anchorMax = new Vector2(1, 1);
-		rect.sizeDelta = new Vector2(0, 0);
+		rect.localPosition = Vector3.zero;
+		rect.localScale = Vector3.one;
+		rect.anchorMin = Vector2.zero;
+		rect.anchorMax = Vector2.one;
+		rect.sizeDelta = Vector2.one;
 
-		info = Instantiate(UI.Find("Mask"), rect);
+		info = Instantiate(UI.Find("Mask"), rect) as RectTransform;
 		info.name = "Info";
 		Destroy(info.GetComponent<RectMask2D>());
 
-		title = info.GetChild(0);
+		title = info.GetChild(0) as RectTransform;
 		titleText = title.GetComponent<TextMeshProUGUI>();
-		description = title.GetChild(0);
+		description = title.GetChild(0) as RectTransform;
 		descText = description.GetComponent<TextMeshProUGUI>();
 
 		StartCoroutine(CreateBackButton());
 
-		modList = CreateList();
-		modColumn = CreateColumn();
+		modList = CreateList() as RectTransform;
+		modColumn = CreateColumn() as RectTransform;
 
 		modButtons = PopulateModList().ToArray();
 
@@ -98,19 +98,17 @@ class ModMenuScreen : MonoBehaviour {
 		descText.alignment = TextAlignmentOptions.BaselineLeft;
 
 		backButton.transform.localPosition = new Vector3(179f, 380f, 0f);
-		modList.transform.localPosition = new Vector3(179f, -25f, 0f);
+		modList.GetComponent<RectTransform>().anchoredPosition = new Vector2(478f, -100f);
 	}
 
-
-
-	private List<Transform> PopulateModList() {
+	private List<RectTransform> PopulateModList() {
 		MenuButtonHelper buttonGen = new MenuButtonHelper(UI.Find("Column/Quit"), modColumn);
 
 		IMod[] mods = modManager.QueryMods();
-		List<Transform> buttons = new List<Transform>();
+		List<RectTransform> buttons = new List<RectTransform>();
 	
 		foreach (IMod mod in mods) {
-			buttons.Add(buttonGen.AddModButton(mod));
+			buttons.Add(buttonGen.AddModButton(mod) as RectTransform);
 		}
 
 		return buttons;
@@ -120,41 +118,35 @@ class ModMenuScreen : MonoBehaviour {
 		MenuButtonHelper backButtonGenerator = new MenuButtonHelper(UI.Find("Column/Quit"), rect);
 		backButton = backButtonGenerator.AddButton("Back", () => {
 			StartCoroutine(MenuTransitions.ModMenuCloseRoutine());
-		});
+		}) as RectTransform;
 
 		yield return null;
 	}
 	
 	private Transform CreateList() {
-		GameObject listObj = new GameObject("Mod List", new Type[]{typeof(RectTransform), typeof(ScrollRect)});
-		RectTransform listTransform = listObj.GetComponent<RectTransform>();
-		listTransform.SetParent(rect);
-		listTransform.localScale = new Vector3(1f, 1f, 1f);
-		listTransform.sizeDelta = new Vector2(400, 600);
-		listObj.GetComponent<ScrollRect>().horizontal = false;
+		RectTransform listPanel = new GameObject("Mod List", new Type[]{ typeof(RectTransform), typeof(Image), typeof(RectMask2D), typeof(ScrollRect) }).transform as RectTransform;
+		listPanel.SetParent(rect);
+		listPanel.localScale = Vector3.one;
+		listPanel.sizeDelta = new Vector2(600, 800);
+		listPanel.GetComponent<Image>().color = new Color(1f, 1f, 1f, 0f);
 
-		GameObject listViewport = new GameObject("Viewport", new Type[]{typeof(RectTransform), typeof(Mask)});
-		listViewport.transform.SetParent(listObj.transform);
-		listViewport.transform.localScale = new Vector3(1f, 1f, 1f);
-		listViewport.GetComponent<Mask>().showMaskGraphic = false;
-		listViewport.GetComponent<Mask>().enabled = false;
-
-		listObj.GetComponent<ScrollRect>().viewport = listViewport.GetComponent<RectTransform>();
-
-		return listObj.transform;
+		return listPanel;
 	}
 
 	private Transform CreateColumn() {
 		Transform column = UI.Find("Column");
-		Transform viewport = modList.GetChild(0);
-	
+		Transform viewport = modList;
+
+		Debug.Log($"{modList.GetComponent<RectTransform>().anchoredPosition}");
 		GameObject columnObj = Instantiate(UI.Find("Column").gameObject, viewport);
-		Transform columnTransform = columnObj.GetComponent<RectTransform>();
+		RectTransform columnTransform = columnObj.GetComponent<RectTransform>();
+		modList.GetComponent<ScrollRect>().content = columnTransform;
 		foreach (Transform child in columnTransform) {
 			Destroy(child.gameObject);
 		}
 		columnTransform.localPosition = new Vector3(0f, 0f, 0f);
 		columnTransform.localScale = new Vector3(1f, 1f, 1f);
+		Debug.Log($"{modList.GetComponent<RectTransform>().anchoredPosition}");
 
 		return columnTransform;
 	}

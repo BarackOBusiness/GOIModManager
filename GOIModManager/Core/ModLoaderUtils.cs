@@ -6,14 +6,14 @@ using UnityEngine;
 
 namespace GOIModManager.Core;
 
-internal static class ModLoaderUtils {
+public static class ModLoaderUtils {
 	internal static List<IMod> LoadMods(Dictionary<IMod, bool> states) {
 		List<IMod> loadedMods = new List<IMod>();
 		string[] modFiles = Directory.GetFiles(ModManager.modPath, "*.dll");
 
 		foreach (string assembly in modFiles) {
 			Assembly modAssembly = Assembly.LoadFrom(assembly);
-			Debug.Log($"Found assembly ${modAssembly.FullName}");
+			Debug.Log($"Found assembly {modAssembly.FullName}");
 			foreach (Type type in modAssembly.GetTypes()) {
 				if (typeof(IMod).IsAssignableFrom(type)) {
 					try {
@@ -34,6 +34,7 @@ internal static class ModLoaderUtils {
 	internal static void GenerateModConfig(IMod mod) {
 		Debug.Log("Config file doesn't exist, creating one.");
 		try {
+			Directory.CreateDirectory(GetModConfigPath(mod));
 			File.CreateText(GetModConfig(mod));
 			WriteModConfig(mod);
 		} catch (Exception err) {
@@ -44,7 +45,7 @@ internal static class ModLoaderUtils {
 	internal static bool LoadModConfig(IMod mod) {
 		Debug.Log($"Loading the config file for {mod.Name}...");
 	
-		if (!File.Exists(GetModConfig(mod))) {
+		if (!Directory.Exists(GetModConfigPath(mod))) {
 			GenerateModConfig(mod);
 		}
 
@@ -70,11 +71,15 @@ internal static class ModLoaderUtils {
 	internal static void PrintModConfig(IMod mod) {
 		FieldInfo[] fields = mod.Configuration.GetType().GetFields();
 		foreach (FieldInfo field in fields) {
-			Debug.Log($"Property {field.Name} of {mod.Name} is currently: {field.GetValue(mod)}");
+			Debug.Log($"Property {field.Name} of {mod.Name} is currently: {field.GetValue(mod.Configuration)}");
 		}
 	}
 
-	internal static string GetModConfig(IMod mod) {
-		return ModManager.modConfigPath + mod.Name + ".json";
+	public static string GetModConfigPath(IMod mod) {
+		return ModManager.modConfigPath + "/" + mod.Name;
+	}
+
+	public static string GetModConfig(IMod mod) {
+		return ModManager.modConfigPath + "/" + mod.Name + "/" + mod.Name + ".json";
 	}
 }
