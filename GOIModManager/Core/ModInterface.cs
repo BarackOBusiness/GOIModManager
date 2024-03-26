@@ -68,9 +68,9 @@ public abstract class ModConfiguration {
 	public abstract bool IsEnabled { get; set; }
 
 	public virtual void ApplySetting(string fieldName, object value) {
-		var property = GetType().GetProperty(fieldName);
-		if (property != null && property.CanWrite) {
-			property.SetValue(this, value);
+		var field = GetType().GetField(fieldName);
+		if (field != null) {
+			field.SetValue(this, value);
 		}
 	}
 

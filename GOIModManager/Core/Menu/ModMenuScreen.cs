@@ -5,6 +5,13 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
+// TODO Here:
+// The mod info should be part of a parent object named Mod Selection
+// Mod Selection should contain also a panel (that is hidden until a mod is selected)
+// which is a translucent scrollable white panel with a rectmask2d that is parent to
+// a column verticallayoutgroup with all of the configuration options
+// this is a gameobject with a class that handles instantiating the text and input fields
+// SUBJECT TO CHANGE.
 namespace GOIModManager.Core.Menu;
 
 // Class for the mod menu itself
@@ -15,15 +22,16 @@ class ModMenuScreen : MonoBehaviour {
 	private RectTransform rect;
 
 	// Used as a baseline to animate the slide in
-	public static Vector3 infoPosition = new Vector3(-310f, 288f, 0f);
+	public static Vector3 infoPosition = new Vector3(-260f, 288f, 0f);
 	public static float rockX = -55f;
 
 	RectTransform info;
 	RectTransform title;
-	RectTransform description;
 	RectTransform modList;
 	RectTransform modColumn;
 	RectTransform backButton;
+	RectTransform description;
+	RectTransform modSelection;
 	RectTransform[] modButtons;
 
 	TextMeshProUGUI titleText;
@@ -41,12 +49,8 @@ class ModMenuScreen : MonoBehaviour {
 		modList.gameObject.SetActive(false);
 	}
 
-	public void SlideInfoIn(float t) {
-		info.localPosition = infoPosition + new Vector3(Mathf.SmoothStep(-1400f, 0f, t), 0f, 0f);
-	}
-
-	public void SlideInfoOut(float t) {
-		info.localPosition = infoPosition + new Vector3(Mathf.SmoothStep(-1400f, 0f, t), 0f, 0f);
+	public void SlideSelection(float t) {
+		modSelection.localPosition = infoPosition + new Vector3(Mathf.SmoothStep(-Screen.width, 0f, t), 0f, 0f);
 	}
 
 	public void SetInfoText(string title, string description) {
@@ -69,7 +73,10 @@ class ModMenuScreen : MonoBehaviour {
 		rect.anchorMax = Vector2.one;
 		rect.sizeDelta = Vector2.one;
 
-		info = Instantiate(UI.Find("Mask"), rect) as RectTransform;
+		modSelection = CreateSelectionScreen();
+
+		info = Instantiate(UI.Find("Mask"), modSelection) as RectTransform;
+		info.localPosition = Vector3.zero;
 		info.name = "Info";
 		Destroy(info.GetComponent<RectMask2D>());
 
@@ -80,8 +87,8 @@ class ModMenuScreen : MonoBehaviour {
 
 		StartCoroutine(CreateBackButton());
 
-		modList = CreateList() as RectTransform;
-		modColumn = CreateColumn() as RectTransform;
+		modList = CreateList();
+		modColumn = CreateColumn();
 
 		modButtons = PopulateModList().ToArray();
 
@@ -92,7 +99,8 @@ class ModMenuScreen : MonoBehaviour {
 	}
 
 	private void InitLayout() {
-		info.localPosition = new Vector3(infoPosition.x - 900f, infoPosition.y, 0f);
+		modSelection.localPosition = new Vector3(infoPosition.x - Screen.width, infoPosition.y, 0f);
+		modSelection.GetChild(0).localPosition = new Vector3(-130.1916f, -443.2612f, 0f);
 		titleText.alignment = TextAlignmentOptions.TopLeft;
 		description.GetComponent<RectTransform>().anchorMax = new Vector2(0.58f, 0.884f);
 		descText.alignment = TextAlignmentOptions.BaselineLeft;
@@ -114,6 +122,18 @@ class ModMenuScreen : MonoBehaviour {
 		return buttons;
 	}
 
+	private RectTransform CreateSelectionScreen() {
+		RectTransform selectionScreen = new GameObject("Mod Selection", new Type[]{ typeof(RectTransform), typeof(VerticalLayoutGroup) }).transform as RectTransform;
+		selectionScreen.SetParent(rect);
+		selectionScreen.localScale = Vector3.one;
+		RectTransform settingsScreen = new GameObject("Mod Config", new Type[]{ typeof(RectTransform), typeof(RectMask2D), typeof(Image), typeof(ScrollRect) }).transform as RectTransform;
+		settingsScreen.SetParent(selectionScreen);
+		settingsScreen.localScale = Vector3.one;
+		settingsScreen.sizeDelta = new Vector2(1000f, 750f);
+		settingsScreen.GetComponent<Image>().color = new Color(1f, 1f, 1f, 0.1f);
+		return selectionScreen;
+	}
+
 	private IEnumerator CreateBackButton() {
 		MenuButtonHelper backButtonGenerator = new MenuButtonHelper(UI.Find("Column/Quit"), rect);
 		backButton = backButtonGenerator.AddButton("Back", () => {
@@ -123,7 +143,7 @@ class ModMenuScreen : MonoBehaviour {
 		yield return null;
 	}
 	
-	private Transform CreateList() {
+	private RectTransform CreateList() {
 		RectTransform listPanel = new GameObject("Mod List", new Type[]{ typeof(RectTransform), typeof(Image), typeof(RectMask2D), typeof(ScrollRect) }).transform as RectTransform;
 		listPanel.SetParent(rect);
 		listPanel.localScale = Vector3.one;
@@ -133,7 +153,7 @@ class ModMenuScreen : MonoBehaviour {
 		return listPanel;
 	}
 
-	private Transform CreateColumn() {
+	private RectTransform CreateColumn() {
 		Transform column = UI.Find("Column");
 		Transform viewport = modList;
 

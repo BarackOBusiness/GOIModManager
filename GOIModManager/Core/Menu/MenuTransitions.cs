@@ -32,7 +32,7 @@ public static class MenuTransitions {
 		modMenu.DefaultText();
 		TextMeshProUGUI[] items = loader.menu.GetComponentsInChildren<TextMeshProUGUI>();
 		for (float t = 0f; t <= 1.0001f; t += 0.05f) {
-			modMenu.SlideInfoIn(t);
+			modMenu.SlideSelection(t);
 			titleMask.position = titleStartPos + new Vector3(Mathf.SmoothStep(0f, -67.5f, t), 0f, 0f);
 			rock.position = rockStartPos + new Vector3(Mathf.SmoothStep(0f, 0.91f, t), 0f, 0f);
 
@@ -52,7 +52,7 @@ public static class MenuTransitions {
 		loader.hammerAnim.Play("HammerUp");
 		
 		for (float t = 1f; t >= -0.0001f; t -= 0.05f) {
-			modMenu.SlideInfoOut(t);
+			modMenu.SlideSelection(t);
 			titleMask.position = titleStartPos + new Vector3(Mathf.SmoothStep(0f, -900f, t), 0f, 0f);
 			rock.position = rockStartPos + new Vector3(Mathf.SmoothStep(0f, 0.91f, t), 0f, 0f);
 
